@@ -1,6 +1,7 @@
 import {
   IsArray,
   IsBoolean,
+  IsMongoId,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -9,7 +10,6 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-// ✅ Represents a single rakat
 export class CreateRakatDto {
   @IsBoolean()
   @IsNotEmpty()
@@ -24,7 +24,6 @@ export class CreateRakatDto {
   markAsOffered?: string | null;
 }
 
-// ✅ Represents a single prayer (e.g., Fajr, Zuhr, etc.)
 export class CreatePrayerDto {
   @IsString()
   @IsNotEmpty()
@@ -48,14 +47,17 @@ export class CreatePrayerDto {
   active?: boolean;
 }
 
-// ✅ Top-level Salah Record for a specific date
 export class CreateSalahTrackerDto {
   @IsString()
   @IsNotEmpty()
-  date: string; // Example: "2025-11-03"
+  date: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreatePrayerDto)
   prayers: CreatePrayerDto[];
+
+  //   @IsMongoId()
+  //   @IsNotEmpty()
+  //   user: string; // 👈 Must provide user ID
 }

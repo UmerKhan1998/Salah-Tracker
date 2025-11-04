@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 @Schema()
 export class Rakat {
@@ -42,6 +42,19 @@ export class SalahRecord extends Document {
 
   @Prop({ type: [PrayerSchema], required: true })
   prayers: Prayer[];
+
+  // // 👇 Link Salah Record to a User
+  // @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  // user: Types.ObjectId;
 }
 
 export const SalahRecordSchema = SchemaFactory.createForClass(SalahRecord);
+
+// Optional: Create a compound unique index (user + date)
+SalahRecordSchema.index(
+  {
+    // user: 1,
+    date: 1,
+  },
+  { unique: true },
+);

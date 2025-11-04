@@ -59,6 +59,21 @@ export class SalahTrackerService {
     return record;
   }
 
+  // ✅ Find by date (optionally filter by user)
+  async findByDate(
+    date: string,
+    // , userId?: string
+  ) {
+    const filter: any = { date };
+    // if (userId) filter.user = userId;
+
+    const record = await this.salahRecordModel.findOne(filter).exec();
+
+    if (!record)
+      throw new NotFoundException(`No Salah record found for date ${date}`);
+    return record;
+  }
+
   async update(id: string, updateSalahTrackerDto: UpdateSalahTrackerDto) {
     const updated = await this.salahRecordModel
       .findByIdAndUpdate(id, updateSalahTrackerDto, { new: true })

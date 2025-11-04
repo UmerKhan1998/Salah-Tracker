@@ -33,6 +33,18 @@ export class SalahTrackerController {
     return await this.salahTrackerService.findOne(id);
   }
 
+  // ✅ Get record(s) by date
+  @Get('date/:date')
+  async findByDate(
+    @Param('date') date: string,
+    // @Query('userId') userId?: string,
+  ) {
+    return await this.salahTrackerService.findByDate(
+      date,
+      // , userId
+    );
+  }
+
   // Update Salah Record by ID
   @Patch(':id')
   async update(

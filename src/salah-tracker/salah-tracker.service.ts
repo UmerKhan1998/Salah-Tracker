@@ -54,34 +54,46 @@ export class SalahTrackerService {
       // Expect month in format "YYYY-MM"
       const [year, monthNum] = month.split('-').map(Number);
 
-      // Calculate start and end of month
-      const startOfMonth = new Date(year, monthNum - 1, 1);
-      const endOfMonth = new Date(year, monthNum, 0); // 0th day of next month = last day of current month
+      const formatDate = (d: Date) => d.toISOString().split('T')[0];
 
-      // Convert to YYYY-MM-DD strings
-      const formatDate = (d: Date) => d.toISOString().split('T')[0]; // "2025-11-01"
+      // ✅ Selected month range
+      const startOfSelected = new Date(year, monthNum - 1, 1);
+      const endOfSelected = new Date(year, monthNum, 0);
+      const selectedStart = formatDate(startOfSelected);
+      const selectedEnd = formatDate(endOfSelected);
 
-      const startDate = formatDate(startOfMonth);
-      const endDate = formatDate(endOfMonth);
+      // ✅ Last 6 months range (excluding selected month)
+      const startOfLast6 = new Date(year, monthNum - 7, 1); // Go 6 months before the previous month
+      const endOfLast6 = new Date(year, monthNum - 1, 0); // Last day before selected month
+      const last6Start = formatDate(startOfLast6);
+      const last6End = formatDate(endOfLast6);
 
-      console.log('Month range:', startDate, '→', endDate);
+      console.log(`Selected month: ${selectedStart} → ${selectedEnd}`);
+      console.log(`Last 6 months: ${last6Start} → ${last6End}`);
 
-      const filter: any = {
-        date: { $gte: startDate, $lte: endDate },
+      // Fetch both in parallel
+      const [selectedMonthRecords, lastSixMonthsRecords] = await Promise.all([
+        this.salahRecordModel
+          .find({ date: { $gte: selectedStart, $lte: selectedEnd } })
+          .sort({ date: 1 })
+          .exec(),
+        this.salahRecordModel
+          .find({ date: { $gte: last6Start, $lte: last6End } })
+          .sort({ date: 1 })
+          .exec(),
+      ]);
+
+      // Return both sets
+      return {
+        selectedMonth: {
+          range: { start: selectedStart, end: selectedEnd },
+          records: selectedMonthRecords,
+        },
+        lastSixMonths: {
+          range: { start: last6Start, end: last6End },
+          records: lastSixMonthsRecords,
+        },
       };
-
-      const records = await this.salahRecordModel
-        .find(filter)
-        .sort({ date: 1 })
-        .exec();
-
-      if (!records || records.length === 0) {
-        throw new NotFoundException(
-          `No Salah records found for month ${month}`,
-        );
-      }
-
-      return records;
     } catch (error) {
       console.error('Error in findByMonth:', error);
       throw new InternalServerErrorException(

@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -46,6 +47,47 @@ export class SalahTrackerService {
       // .populate('user', 'username email')
       .sort({ createdAt: -1 })
       .exec();
+  }
+
+  async findByMonth(month: string) {
+    try {
+      // Expect month in format "YYYY-MM"
+      const [year, monthNum] = month.split('-').map(Number);
+
+      // Calculate start and end of month
+      const startOfMonth = new Date(year, monthNum - 1, 1);
+      const endOfMonth = new Date(year, monthNum, 0); // 0th day of next month = last day of current month
+
+      // Convert to YYYY-MM-DD strings
+      const formatDate = (d: Date) => d.toISOString().split('T')[0]; // "2025-11-01"
+
+      const startDate = formatDate(startOfMonth);
+      const endDate = formatDate(endOfMonth);
+
+      console.log('Month range:', startDate, '→', endDate);
+
+      const filter: any = {
+        date: { $gte: startDate, $lte: endDate },
+      };
+
+      const records = await this.salahRecordModel
+        .find(filter)
+        .sort({ date: 1 })
+        .exec();
+
+      if (!records || records.length === 0) {
+        throw new NotFoundException(
+          `No Salah records found for month ${month}`,
+        );
+      }
+
+      return records;
+    } catch (error) {
+      console.error('Error in findByMonth:', error);
+      throw new InternalServerErrorException(
+        error.message || 'Error fetching monthly records',
+      );
+    }
   }
 
   async findOne(id: string) {

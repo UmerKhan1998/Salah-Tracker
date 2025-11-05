@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { SalahTrackerService } from './salah-tracker.service';
 import { CreateSalahTrackerDto } from './dto/create-salah-tracker.dto';
@@ -27,10 +28,10 @@ export class SalahTrackerController {
     return await this.salahTrackerService.findAll();
   }
 
-  // Get a single Salah Record by ID
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return await this.salahTrackerService.findOne(id);
+  // ✅ Get record(s) by date
+  @Get('month')
+  async findBymonth(@Query('month') month: string) {
+    return await this.salahTrackerService.findByMonth(month);
   }
 
   // ✅ Get record(s) by date
@@ -43,6 +44,11 @@ export class SalahTrackerController {
       date,
       // , userId
     );
+  }
+  // Get a single Salah Record by ID
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return await this.salahTrackerService.findOne(id);
   }
 
   // Update Salah Record by ID
